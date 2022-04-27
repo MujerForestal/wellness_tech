@@ -81,3 +81,7 @@ combined_data <- merge(sleep_day, daily_activity, by="Id")
 # Take a look at how many participants are in this data set.
   
 n_distinct(combined_data$Id)
+
+#Explore the relation between steps per day and burning calories
+
+#Explore the relation between steps per day and sleep 
