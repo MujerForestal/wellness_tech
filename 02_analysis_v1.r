@@ -84,4 +84,8 @@ n_distinct(combined_data$Id)
 
 #Explore the relation between steps per day and burning calories
 
+ggplot(data=combined_data, aes(x = Calories, y = TotalSteps)) + 
+  geom_point() + geom_smooth(method = 'loess', formula = 'y ~ x') + 
+  labs(title="Calories vs Total Steps", x = "Calories", y = "Steps per day")
+
 #Explore the relation between steps per day and sleep 
