@@ -89,3 +89,10 @@ ggplot(data=combined_data, aes(x = Calories, y = TotalSteps)) +
   labs(title="Calories vs Total Steps", x = "Calories", y = "Steps per day")
 
 #Explore the relation between steps per day and sleep 
+
+# Create a dataframe for sleep data
+sleep_day <- read.csv("sleepDay_merged.csv")
+
+#Time of the day they burn more calories
+pivot <- dailyCalories_merged %>%
+select(Id, ActivityDay, Calories)
