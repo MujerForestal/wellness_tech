@@ -1,19 +1,37 @@
-######### Bellabet Case Study using R ##########
+---
+title: "Bellabet Case Study using R"
+author: "Liliana Cruz"
+date: 'Abril 2022'
+output: html_document
+---
+## 1. Business Task
 
-# Final project: Google Data Analysis Certificate
-# Case Study 2: How Can a Wellness Technology Company Play It Smart?
-# Abril, 2022
+Bellabeat is a high-tech manufacturer of products focused on women's health, to improve their marketing strategy I need to analyze one of their products: The Bellabeat app, using data to learn how consumers use non-Bellabeat smart devices. 
 
-# 3. Cleaning and Manipulation of Data
-# 3.1 Environment Setup
-# Installing the required packages
+**Product Description (Bellabeat app):**  The Bellabeat app provides users with health data related to their activity, sleep, stress, menstrual cycle, and mindfulness habits. This data can help users better understand their current habits and make healthy decisions. The Bellabeat app connects to their line of smart wellness products.
+
+## 2. Data Sources
+
+**FitBit Fitness Tracker Data** (CC0: Public Domain, dataset made available through Mobius): This Kaggle data set contains personal fitness tracker from thirty fitbit users. Thirty eligible Fitbit users consented to the submission of personal tracker data, including minute-level output for physical activity, heart rate, and sleep monitoring. It includes information about daily activity, steps, and heart rate that can be used to explore users’ habits.
+
+## 3. Cleaning and Manipulation of Data
+
+### 3.1 Environment Setup
+Create a script for loading packages and custom functions: 00_packages_v1.r
+
+#### Installing the required packages
+
+```{r Installing packages}
 library(tidyverse)
 library(lubridate)
 library(dplyr)
 library(ggplot2)
 library(tidyr)
+```
 
-#Importing Data
+#### Importing Data
+
+```{r Importing Data}
 dailyActivity_merged <- read_csv("data/raw/dailyActivity_merged.csv")
 dailyCalories_merged <- read_csv("data/raw/dailyCalories_merged.csv")
 dailyIntensities_merged <- read_csv("data/raw/dailyIntensities_merged.csv")
@@ -32,18 +50,22 @@ minuteStepsNarrow_merged <- read_csv("data/raw/minuteStepsNarrow_merged.csv")
 minuteStepsWide_merged <- read_csv("data/raw/minuteStepsWide_merged.csv")
 sleepDay_merged <- read_csv("data/raw/sleepDay_merged.csv")
 weightLogInfo_merged <- read_csv("data/raw/weightLogInfo_merged.csv")
+```
+### 3.2 Cleaning up and preparing the data for analysis
 
-# 3.2 Cleaning up and preparing the data for analysis
-#Installing packages for cleaning data
+Create a script for cleaning up and preparing the data for analysis: 01_dataclean_v1
 
-install.packages("here")
-install.packages("skimr")
-install.packages("janitor")
+#### Installing packages for cleaning data
+
+```{r packages to clean data}
 library("here")
 library("skimr")
 library("janitor")
+```
 
-#Check Data
+#### Checking Data Sets
+
+```{r ckeking data sets}
 glimpse(dailyActivity_merged)
 glimpse(dailyCalories_merged)
 glimpse(dailyIntensities_merged)
@@ -62,14 +84,312 @@ glimpse(minuteStepsNarrow_merged)
 glimpse(minuteStepsWide_merged)
 glimpse(sleepDay_merged)
 glimpse(weightLogInfo_merged)
+```
+#### Clean Data
 
-#Clean Data
-#Remove repeat columns
+```{r remove repeat columns}
 select(dailyActivity_merged, -TrackerDistance)
 dailyActivity_merged$TrackerDistance <- NULL
+```
+Remove Fat column into weightLogInfo because it doesn't have data.
 
-#Remove columns without data
+#### Change Data Time Formats
 
-weight <- select(weight, - Fat)
-select(weightLogInfo_merged, -Fat)
-weightLogInfo_merged$Fat <- NULL
+Daily Activity Data Frame
+
+```{r Change data time formats}
+dailyActivity_merged$ActivityDate <- as.Date(dailyActivity_merged$ActivityDate, format = "%m/%d/%Y")
+dailyActivity_merged$date1 <- format(dailyActivity_merged$ActivityDate, format = "%m/%d/%Y")
+```
+
+Change time 24 hrs - Hourly Intensities Data Frame
+
+```{r Change time format Hourly Intensities}
+hourlyIntensities_merged$ActivityHour <- as.POSIXct(hourlyIntensities_merged$ActivityHour, format="%m/%d/%Y %I:%M:%S %p", tz="UTC")
+hourlyIntensities_merged$time1 <- format(hourlyIntensities_merged$ActivityHour, format = "%H:%M:%S") 
+hourlyIntensities_merged$date1 <- format(hourlyIntensities_merged$ActivityHour, format = "%m/%d/%Y")
+```
+
+Change time 24 hrs - Hourly Calories Data Frame
+
+```{r Change time format Hourly Calories}
+hourlyCalories_merged$ActivityHour <- as.POSIXct(hourlyCalories_merged$ActivityHour, format="%m/%d/%Y %I:%M:%S %p", tz="UTC")
+hourlyCalories_merged$time1 <- format(hourlyCalories_merged$ActivityHour, format = "%H:%M:%S")
+hourlyCalories_merged$date1 <- format(hourlyCalories_merged$ActivityHour, format = "%m/%d/%Y")
+```
+
+Change time Heart Rate Seconds Data Set
+
+```{r Change time format Heart Rate}
+heartrate_seconds_merged$Time <- as.POSIXct(heartrate_seconds_merged$Time, format = "%m/%d/%Y %I:%M:%S %p", tz = Sys.timezone())
+heartrate_seconds_merged$time1 <- format(heartrate_seconds_merged$Time, format = "%I:%M:%S")
+heartrate_seconds_merged$date1 <- format(heartrate_seconds_merged$Time, format = "%m/%d/%Y")
+```
+
+Change time format WeightLogInfo Data Set
+
+```{r Change time format WeghtLogInfo}
+weightLogInfo_merged$Date <- as.POSIXct(weightLogInfo_merged$Date, format = "%m/%d/%Y %I:%M:%S %p", tz = Sys.timezone())
+weightLogInfo_merged$time1 <- format(weightLogInfo_merged$Date, format = "%I:%M:%S")
+weightLogInfo_merged$date1 <- format(weightLogInfo_merged$Date, format = "%m/%d/%Y")
+```
+
+Change time format Sleep Day Data Set
+
+```{r Change time formata Sleep Day}
+sleepDay_merged$SleepDay <- as.POSIXct(sleepDay_merged$SleepDay, format = "%m/%d/%Y %I:%M:%S %p", tz = Sys.timezone())
+sleepDay_merged$sleep_time <- format(sleepDay_merged$SleepDay, format = "%I:%M:%S")
+sleepDay_merged$date1 <- format(sleepDay_merged$SleepDay, format = "%m/%d/%Y")
+```
+
+## Sumary Cleaning and Manipulation Data 
+
+* Review all the data sets
+* In the dailyActivity dataset I remove the column trackerDistance because it has the same data than totalDistance.
+* heartrate_seconds is the large dataset with 2,483,658 rows. 
+* The Fat column in the weightLogInfo data doesn’t have data
+* Change the data time format for all the data sets. 
+
+## 4. Analysis
+Create script for analysis of the data:  02_analysis_v1.r
+
+### Create Dataframes
+
+```{r Create a dataframe name daily_activity}
+daily_activity <- read.csv("data/raw/dailyActivity_merged.csv")
+```
+
+```{r Create a dataframe for sleep data}
+sleep_day <- read.csv("data/raw/sleepDay_merged.csv")
+```
+
+### Exploring a few key tables
+
+```{r Take a look at the daily_activity data}
+head(daily_activity)
+```
+
+```{r Identify all the columns in  daily_activity}
+colnames(daily_activity)
+```
+
+```{r Take a look at the sleep_day data}
+head(sleep_day)
+```
+
+```{r Identify all the columns in the daily_activity data}
+colnames(sleep_day)
+```
+Looks like both data sets has the same 'Id' field - Merge
+  
+### Verify hypothesis
+```{r How many unique participants are there in each dataframe?}
+n_distinct(daily_activity$Id)
+n_distinct(sleep_day$Id)
+```
+
+```{r How many observations are there in each dataframe?}
+nrow(daily_activity)
+nrow(sleep_day)
+```
+
+
+### Summary statistics
+
+```{r Summary daily activity dataframe}
+  daily_activity %>%  
+    select(TotalSteps,
+           TotalDistance,
+           SedentaryMinutes) %>%
+    summary()
+```
+
+```{r Summary sleep dataframe}
+  sleep_day %>%  
+    select(TotalSleepRecords,
+           TotalMinutesAsleep,
+           TotalTimeInBed) %>%
+    summary()
+```
+
+### What's the relationship between steps taken in a day and sedentary minutes? 
+
+```{r Steps vs Sedentary Minutes}
+    ggplot(data=daily_activity, aes(x=TotalSteps, y=SedentaryMinutes)) + 
+    geom_point()
+```
+
+### What's the relationship between minutes asleep and time in bed? 
+
+```{r}
+ggplot(data=sleep_day, aes(x = TotalMinutesAsleep, y = TotalTimeInBed)) + 
+      	geom_point() + geom_smooth(method = 'loess', formula = 'y ~ x') + 
+      	labs(title="Minutes Asleep vs Minutes in Bed", x = "Minutes Asleep", y = "Minutes in Bed")
+```
+
+### Verify Number of user per each Data Set
+```{r}
+n_distinct(daily_activity$Id)
+n_distinct(dailyCalories_merged$Id)
+n_distinct(dailyIntensities_merged$Id)
+n_distinct(dailySteps_merged$Id)
+n_distinct(hourlyCalories_merged$Id)
+n_distinct(hourlyIntensities_merged$Id)
+n_distinct(hourlySteps_merged$Id)
+n_distinct(hourlySteps_merged$Id)
+n_distinct(sleep_day$Id)
+n_distinct(weightLogInfo_merged$Id)
+```
+
+To consolidate the data, merge dailyActivity dataset and sleepDay together by Id and Date
+
+```{r}
+full_data <- merge(daily_activity, sleepDay_merged, by.x = "Id", by.y = "date1", all = TRUE)
+head(full_data)
+glimpse(full_data)
+```
+
+Take a look at how many participants are in this data set.
+
+```{r}
+n_distinct(full_data$Id)
+```
+### What’s the relationship between calories and total steps?
+
+```{r}
+ggplot(data=full_data, aes(x = Calories, y = TotalSteps)) + 
+  	geom_point() + geom_smooth(method = 'loess', formula = 'y ~ x') + 
+  	labs(title="Calories vs Total Steps", x = "Calories", y = "Steps per day")
+```
+ 
+###  Analysis
+* The average steps per user is 7.638, sedentary time 991 minutes (17 hours).
+* The average of time on bed is 458.6 (7.5 hours).
+* Analyzing the relationship between minutes of sedentary minutes and total steps, between the two variables doesn’t exist a direct relationship, although it can be deduced from the graph that most users who walk from 500 to 1,000 steps per day have more sedentary minutes.
+* Analyzing the relationship between minutes asleep and time in bed I found some unexpected trends, showing the user also on bed are active. 
+* Analyzing the relationship between calories and steps per day, it shows that users who has more steps don’t necessarily burn more calories. 
+
+## 5. Visualizations and Key Findings
+
+###Create a script data visualizations: 03_xvisualization_v1.r
+
+### Number of Users tracking their Statistics
+
+Identify the number of users per each important variable.
+Use tibble to keep important features of the original data frame and remove outdated feature.
+
+```{r Tibble}
+stats_user <- tibble(
+    var_stat = factor(c("Activity", "Sleep", "Heartrate", "Weight/BMI")),
+    user_count = c(n_distinct(daily_activity$Id),
+                   n_distinct(sleepDay_merged$Id),
+                   n_distinct(heartrate_seconds_merged$Id),
+                   n_distinct(weightLogInfo_merged$Id))
+)
+```
+
+### Graph Number of User Tracking their Statistics
+
+```{r Number of user tracking their statistics}
+ggplot(stats_user, aes(var_stat, user_count)) +
+    geom_col(aes(fill = var_stat)) +
+    geom_text(aes(label = user_count), fontface = "bold",
+              nudge_y = 1.25, size = 4) +
+    theme_light() +
+    theme(legend.position = "none",
+          plot.title.position = "plot", plot.title = element_text(size = 12, face = "bold"), 
+          axis.text = element_text(size = 12), axis.title = element_text(size = 12)) +
+    ggtitle("Number of Users tracking their Statistics") +
+    xlab(NULL)
+```
+
+### Intensities over time per hour.
+
+Group hourly_intensities by time
+
+```{r Intensities over time per hour}
+intensities <- hourlyIntensities_merged %>%
+  group_by(time1) %>% 
+  drop_na() %>%
+  summarise(mean_total_int = mean(TotalIntensity))
+```
+
+###Graph Average Total Intensity vs. Time
+
+```{r Average total intensity vs. Time}
+ggplot(intensities, aes(x = time1, y = mean_total_int)) + 
+  geom_histogram(stat = "identity", fill = 'cyan3') +
+  theme(axis.text.x = element_text(angle = 90),
+        axis.text = element_text(size = 12), axis.title = element_text(size = 12), 
+        plot.title = element_text(size = 12, face = "bold")) + 
+  labs(title = "Average Total Intensity vs. Time")
+```
+
+After visualizing Total Intensity hourly, I found out that users are fully active between 8am and 9pm.
+
+### Average calories over time per hour
+
+```{r Group hourly calories by time}
+AverageCaloriesHour <- hourlyCalories_merged %>%
+  group_by(time1) %>% 
+  drop_na() %>%
+  summarise(calories_per_hour = mean(Calories))
+```
+
+### Graph Calories vs. Time
+
+```{r Graph Calories vs. Time}
+ggplot(AverageCaloriesHour, aes(x = time1, y = calories_per_hour)) + 
+  geom_histogram(stat = "identity", fill = 'cyan3') +
+  theme(axis.text.x = element_text(angle = 90),
+        axis.text = element_text(size = 12), axis.title = element_text(size = 12), 
+        plot.title = element_text(size = 12, face = "bold")) + 
+  labs(title = "Average Total Calories vs. Time")
+```
+
+### Check Day of Week versus average total steps
+
+### Average steps per day of week
+Create a column per day of week and rename date1 as date.
+
+Import daily_activity_pre data set
+
+```{r}
+daily_activity_pre <- read_csv("data/processed/daily_activity_pre.csv")
+head(daily_activity_pre)
+```
+
+```{r daily activity modificada}
+daily_activity_pre <- daily_activity_pre %>%
+  str(daily_activity_pre)
+```
+#Graph Day of the Week vs. Average Number of Steps
+
+```{r steps day data set}
+steps_day <- read_csv("data/processed/steps_day.csv")
+head(steps_day)
+```
+```{r Graph Day of the Week vs. Average Number of Steps}
+ggplot(data = steps_day) +
+      geom_col(mapping = aes(x = day_of_week,y = mean_day_week_step, fill = day_of_week)) + 
+      labs(title="Day of the Week vs. Average Number of Steps", x = "Day of the Week", y = "Mean Steps") + 
+      theme_light() +
+      theme(legend.position = "none",
+      plot.title.position = "plot", plot.title = element_text(size = 12, face = "bold"),
+      axis.text = element_text(size = 10), axis.title = element_text(size = 12))
+```
+
+### Supporting Visualizations and Key Findings
+
+* The graph of Number of User Tracking their Statistics show us that 33 users have registered their activity statistics,  24 their sleep (72%), 14 (42%) their heart-rate and just 8 (24%) their weight. 
+* The graph of Average Total Intensity vs. Time shows that users are most active between daylight hours, and has two peaks: one between 9 am to 11 am and the other between 5 pm to 7 pm. 
+* The Average Total Calories vs. Time graph shows that users burn most calories during daylight hours, and has two peaks: one between 11am to 2pm, and the other between 4pm to 7pm. Coinciding somewhat with the previous statement. 
+* The day of week vs. Average Number of Steps graph shows different values per each day. The users have more numbers of steps on Saturdays and Tuesdays, and less on Sundays, but the data is not sufficient for further analysis.
+
+## Recommendations
+Keeping in mind that this data is insufficient to make suggestions, and that no set of databases specifies the gender of the users, which makes the analysis much more complicated because our app is specifically oriented to women. I will make some general suggestions for this app: 
+
+* FitBit includes heart-rate and weight in its features, features that should be included in Bellabeat's app by installing an alert for users to periodically update their weight. 
+* Bellabeat could consider creating a special dashboard where to show users the moments of increased activity, inactivity and good sleep.
+* Bellabeat could include a feature where the users set their goals and evaluate it periodically. 
+* Bellabeat could consider creating some alerts to encourage activity on Sundays, day when users are most inactive.
